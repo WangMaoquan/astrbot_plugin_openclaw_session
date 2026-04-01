@@ -14,7 +14,12 @@ from astrbot.api import logger
 )
 class OpenClawSession(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
-        logger.info(f"[OpenClaw Session] config: {dir(config)}")
+        # [save_config, default_config,get,update,values,items]
+        logger.info(f"[OpenClaw Session] config.items: {config.items()}")
+        logger.info(f"[OpenClaw Session] config.default_config: {config.default_config}")
+        logger.info(f"[OpenClaw Session] config.get: {config.get('custom-headers')}")
+        logger.info(f"[OpenClaw Session] config.values: {config.values()}")
+        # logger.info(f"[OpenClaw Session] config.items: {config.items()}")
         super().__init__(context)
     
     @filter.on_llm_request()
