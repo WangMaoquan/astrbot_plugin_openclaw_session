@@ -25,10 +25,10 @@ class OpenClawSession(Star):
                 umo=event.unified_msg_origin
             )
             # 只取最后一段，比如 "Openclaw/openclaw/main" -> "main"
-            agent_id = provider_id.split("/")[-1] if provider_id else "main"
+            model_id = provider_id.split("/")[-1] if provider_id else "main"
         except Exception as e:
             logger.warning(f"[OpenClaw Session] 获取 provider 失败: {e}")
-            agent_id = "main"
+            model_id = "main"
         
         # 获取 user_id 和 group_id
         user_id = str(event.get_sender_id())
@@ -40,8 +40,8 @@ class OpenClawSession(Star):
         else:
             session_id = user_id
         
-        # 拼接 session key
-        session_key = f"agent:main:{agent_id}:{session_id}"
+        # 拼接 session key: agent:<model>:openai:<user_id/group_id>
+        session_key = f"agent:{model_id}:openai:{session_id}"
         
         logger.info(f"[OpenClaw Session] session_key: {session_key}")
         
