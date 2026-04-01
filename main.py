@@ -43,13 +43,12 @@ class OpenClawSession(Star):
         # 打印 req 的所有属性
         logger.info(f"[OpenClaw Session] === ProviderRequest 属性 ===")
         for attr in dir(req):
-            if not attr.startswith('_'):
-                try:
-                    value = getattr(req, attr)
-                    if not callable(value):
-                        logger.info(f"[OpenClaw Session] {attr}: {value}")
-                except Exception as e:
-                    logger.info(f"[OpenClaw Session] {attr}: <获取失败: {e}>")
+            try:
+                value = getattr(req, attr)
+                if not callable(value):
+                    logger.info(f"[OpenClaw Session] {attr}: {value}")
+            except Exception as e:
+                logger.info(f"[OpenClaw Session] {attr}: <获取失败: {e}>")
     
     async def terminate(self):
         """插件卸载时调用"""
