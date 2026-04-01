@@ -18,36 +18,38 @@ class OpenClawSession(Star):
     
     @filter.on_llm_request()
     async def on_llm_request_handler(self, event: AstrMessageEvent, req: ProviderRequest):
-        """Hook into LLM requests，设置 session key"""
-        # 获取当前 provider_id
+        """Hook into LLM requests，生成 session key 并打印 req 属性"""
+        # 生成 session key
         try:
             provider_id = await self.context.get_current_chat_provider_id(
                 umo=event.unified_msg_origin
             )
-            # 只取最后一段，比如 "Openclaw/openclaw/main" -> "main"
             model_id = provider_id.split("/")[-1] if provider_id else "main"
         except Exception as e:
             logger.warning(f"[OpenClaw Session] 获取 provider 失败: {e}")
             model_id = "main"
         
-        # 获取 user_id 和 group_id
         user_id = str(event.get_sender_id())
         group_id = str(event.get_group_id()) if event.get_group_id() else ""
         
-        # 群聊用 group_id，私聊用 user_id
         if group_id:
             session_id = group_id
         else:
             session_id = user_id
         
-        # 拼接 session key: agent:<model>:openai:<user_id/group_id>
         session_key = f"agent:{model_id}:openai:{session_id}"
+        logger.info(f"[OpenClaw Session] session_key: {session_key}")
         
-        logger.info(f"[OpenClaw Session] 设置 session key: {session_key}")
-        
-        # 设置 x-openclaw-session-key header
-        req.headers = req.headers or {}
-        req.headers["x-openclaw-session-key"] = session_key
+        # 打印 req 的所有属性
+        logger.info(f"[OpenClaw Session] === ProviderRequest 属性 ===")
+        for attr in dir(req):
+            if not attr.startswith('_'):
+                try:
+                    value = getattr(req, attr)
+                    if not callable(value):
+                        logger.info(f"[OpenClaw Session] {attr}: {value}")
+                except Exception as e:
+                    logger.info(f"[OpenClaw Session] {attr}: <获取失败: {e}>")
     
     async def terminate(self):
         """插件卸载时调用"""
