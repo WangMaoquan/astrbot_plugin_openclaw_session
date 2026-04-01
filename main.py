@@ -14,16 +14,19 @@ from astrbot.api import logger
 )
 class OpenClawSession(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
-        # [save_config, default_config,get,update,values,items]
-        logger.info(f"[OpenClaw Session] config.items: {config.items()}")
-        logger.info(f"[OpenClaw Session] config.default_config: {config.default_config}")
-        logger.info(f"[OpenClaw Session] config.get: {config.get('custom-headers')}")
-        logger.info(f"[OpenClaw Session] config.values: {config.values()}")
-        # logger.info(f"[OpenClaw Session] config.items: {config.items()}")
         super().__init__(context)
+        self._original_custom_headers = {}
     
     @filter.on_llm_request()
     async def on_llm_request_handler(self, event: AstrMessageEvent, req: ProviderRequest):
+
+        # 获取 config
+        config = self._get_context_config();
+        provider_sources = config.get("provider_sources", [])
+
+        logger.info(f"[OpenClaw Session] provider_sources: {provider_sources}")
+    
+
         """Hook into LLM requests，生成 session key 并打印 req 属性"""
         # 生成 session key
         try:
@@ -45,16 +48,28 @@ class OpenClawSession(Star):
         
         session_key = f"agent:{model_id}:openai:{session_id}"
         logger.info(f"[OpenClaw Session] session_key: {session_key}")
+
+        # 保存原始 custom_headers
+        self._original_custom_headers = {}
+        for ps in provider_sources:
+            ps_id = ps.get('id', '')
+            self._original_custom_headers[ps_id] = ps.get('custom_headers', {}).copy()
+            ps['custom_headers']['x-openclaw-session-key'] = session_key
+
+        logger.info(f"[OpenClaw Session] update provider_sources: {provider_sources}")
         
-        # 打印 req 的所有属性
-        # logger.info(f"[OpenClaw Session] === ProviderRequest 属性 ===")
-        # for attr in dir(req):
-        #     try:
-        #         value = getattr(req, attr)
-        #         if not callable(value):
-        #             logger.info(f"[OpenClaw Session] {attr}: {value}")
-        #     except Exception as e:
-        #         logger.info(f"[OpenClaw Session] {attr}: <获取失败: {e}>")
+    @filter.on_llm_response()
+    async def on_llm_response_handler(self, event: AstrMessageEvent, resp):
+        # 恢复原始 custom_headers
+        config = self._get_context_config()
+        provider_sources = config.get("provider_sources", [])
+        
+        for ps in provider_sources:
+            ps_id = ps.get('id', '')
+            if ps_id in self._original_custom_headers:
+                ps['custom_headers'] = self._original_custom_headers[ps_id].copy()
+        
+        logger.info("[OpenClaw Session] 恢复 custom_headers 完成")
     
     async def terminate(self):
         """插件卸载时调用"""
