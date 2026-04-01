@@ -56,6 +56,7 @@ class OpenClawSession(Star):
             self._original_custom_headers[ps_id] = ps.get('custom_headers', {}).copy()
             ps['custom_headers']['x-openclaw-session-key'] = session_key
 
+        logger.info(f"[OpenClaw Session] 原始 custom_headers: {self._original_custom_headers}")
         logger.info(f"[OpenClaw Session] update provider_sources: {provider_sources}")
         
     @filter.on_llm_response()
@@ -64,12 +65,15 @@ class OpenClawSession(Star):
         config = self._get_context_config()
         provider_sources = config.get("provider_sources", [])
         
+        logger.info(f"[OpenClaw Session] 恢复前 provider_sources: {provider_sources}")
+        logger.info(f"[OpenClaw Session] 恢复时 original: {self._original_custom_headers}")
+        
         for ps in provider_sources:
             ps_id = ps.get('id', '')
             if ps_id in self._original_custom_headers:
                 ps['custom_headers'] = self._original_custom_headers[ps_id].copy()
         
-        logger.info("[OpenClaw Session] 恢复 custom_headers 完成")
+        logger.info(f"[OpenClaw Session] 恢复后 provider_sources: {provider_sources}")
     
     async def terminate(self):
         """插件卸载时调用"""
