@@ -1,0 +1,6 @@
+name: astrbot_plugin_openclaw_session
+desc: "OpenClaw Session 管理插件 - 为每个用户/群生成固定 session key"
+help: "自动为每次 LLM 请求设置 x-openclaw-session-key，实现会话记忆"
+version: v1.0.0
+author: "小明"
+repo: ""
