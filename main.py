@@ -18,7 +18,7 @@ class OpenClawSession(Star):
     
     @filter.on_llm_request()
     async def on_llm_request_handler(self, event: AstrMessageEvent, req: ProviderRequest):
-        """Hook into LLM requests，生成并打印 session key"""
+        """Hook into LLM requests，设置 session key"""
         # 获取当前 provider_id
         try:
             provider_id = await self.context.get_current_chat_provider_id(
@@ -43,9 +43,11 @@ class OpenClawSession(Star):
         # 拼接 session key: agent:<model>:openai:<user_id/group_id>
         session_key = f"agent:{model_id}:openai:{session_id}"
         
-        logger.info(f"[OpenClaw Session] session_key: {session_key}")
+        logger.info(f"[OpenClaw Session] 设置 session key: {session_key}")
         
-        # TODO: 后续添加实际设置 session key 的逻辑
+        # 设置 x-openclaw-session-key header
+        req.headers = req.headers or {}
+        req.headers["x-openclaw-session-key"] = session_key
     
     async def terminate(self):
         """插件卸载时调用"""
