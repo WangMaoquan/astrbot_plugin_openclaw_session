@@ -14,6 +14,7 @@ from astrbot.api import logger
 )
 class OpenClawSession(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
+        logger.info(f"[OpenClaw Session] config: {dir(config)}")
         super().__init__(context)
     
     @filter.on_llm_request()
@@ -41,14 +42,14 @@ class OpenClawSession(Star):
         logger.info(f"[OpenClaw Session] session_key: {session_key}")
         
         # 打印 req 的所有属性
-        logger.info(f"[OpenClaw Session] === ProviderRequest 属性 ===")
-        for attr in dir(req):
-            try:
-                value = getattr(req, attr)
-                if not callable(value):
-                    logger.info(f"[OpenClaw Session] {attr}: {value}")
-            except Exception as e:
-                logger.info(f"[OpenClaw Session] {attr}: <获取失败: {e}>")
+        # logger.info(f"[OpenClaw Session] === ProviderRequest 属性 ===")
+        # for attr in dir(req):
+        #     try:
+        #         value = getattr(req, attr)
+        #         if not callable(value):
+        #             logger.info(f"[OpenClaw Session] {attr}: {value}")
+        #     except Exception as e:
+        #         logger.info(f"[OpenClaw Session] {attr}: <获取失败: {e}>")
     
     async def terminate(self):
         """插件卸载时调用"""
